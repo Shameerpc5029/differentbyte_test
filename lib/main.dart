@@ -207,6 +207,7 @@ class MainController extends GetxController {
         userData.value = user;
         print(user);
         print('User found: ${user.login}');
+        userNameController.clear();
         Get.to(() => DetialsScreen());
       } else {
         ScaffoldMessenger.of(
