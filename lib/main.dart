@@ -195,7 +195,7 @@ class MainController extends GetxController {
   TextEditingController userNameController = TextEditingController();
 
   final dio = Dio();
-  final RxMap<String, dynamic> userData = <String, dynamic>{}.obs;
+  final Rx<User?> userData = Rx<User?>(null);
   void getHttp() async {
     try {
       final response = await dio.get(
@@ -204,7 +204,7 @@ class MainController extends GetxController {
       print(response.statusCode);
       if (response.statusCode == 200) {
         User user = User.fromJson(response.data);
-        userData.value = response.data;
+        userData.value = user;
         print(user);
         print('User found: ${user.login}');
         Get.to(() => DetialsScreen());
@@ -221,8 +221,6 @@ class MainController extends GetxController {
       print('An error occurred: $e');
     }
   }
-
-  // Add your controller logic here
 }
 
 class HomeScreen extends StatelessWidget {
@@ -244,9 +242,6 @@ class HomeScreen extends StatelessWidget {
                   labelText: 'Enter GitHub Username',
                   border: OutlineInputBorder(),
                 ),
-                // validator: (value) => value == null || value.isEmpty
-                //     ? 'Please enter a username'
-                //     : null,
               ),
               SizedBox(height: 20),
               ElevatedButton(
@@ -275,27 +270,25 @@ class DetialsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<MainController>();
+    final user = controller.userData.value;
     return Scaffold(
-      appBar: AppBar(title: Text(controller.userData['login'] ?? 'Details')),
-      body: Center(
-        child: Column(
-          children: [
-            CircleAvatar(
-              radius: 50,
-              backgroundImage: NetworkImage(
-                controller.userData['avatar_url'] ?? '',
+      appBar: AppBar(title: Text('Details')),
+      body: user == null
+          ? Center(child: Text('No user data available'))
+          : Center(
+              child: Column(
+                children: [
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundImage: NetworkImage(user.avatarUrl),
+                  ),
+                  SizedBox(height: 20),
+                  Text('Name: ${user.name}'),
+                  Text('Bio: ${user.bio ?? 'N/A'}'),
+                  Text('Public Repos: ${user.publicRepos}'),
+                ],
               ),
             ),
-            SizedBox(height: 20),
-            Text('Name: ${controller.userData['name'] ?? 'N/A'}'),
-            Text('Bio: ${controller.userData['bio'] ?? 'N/A'}'),
-            Text(
-              'Public Repos: ${controller.userData['public_repos'] ?? 'N/A'}',
-            ),
-            Text('Followers: ${controller.userData['followers'] ?? 'N/A'}'),
-          ],
-        ),
-      ),
     );
   }
 }
